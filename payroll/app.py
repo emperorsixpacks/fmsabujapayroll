@@ -1,7 +1,6 @@
 from flask import Flask, render_template
 from flask_login import LoginManager, current_user, login_required
 
-
 from payroll.config import Config
 from payroll.models import User, db
 from payroll.routers import auth, files

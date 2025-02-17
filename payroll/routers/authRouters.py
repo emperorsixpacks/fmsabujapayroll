@@ -1,6 +1,6 @@
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 from flask_login import login_required, login_user, logout_user
-from models import User, db
+from payroll.models import User, db
 from werkzeug.security import check_password_hash, generate_password_hash
 
 auth = Blueprint("auth", __name__)

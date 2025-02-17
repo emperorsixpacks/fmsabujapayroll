@@ -1,6 +1,6 @@
 import os
 
-from config import Config
+from payroll.config import Config
 from flask import Blueprint, flash, redirect, request, send_from_directory, url_for
 from werkzeug.utils import secure_filename
 
