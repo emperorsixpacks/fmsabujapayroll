@@ -3,7 +3,7 @@ from flask_login import LoginManager, current_user, login_required
 
 from payroll.config import Config
 from payroll.models import User, db
-from payroll.routers import auth, files
+from payroll.routers import authRouter, userRouter, fileRouter
 
 app = Flask("__name__")
 app.config.from_object(Config)
@@ -31,8 +31,9 @@ def user_config():
     return render_template("user_config.html", user=current_user)
 
 
-app.register_blueprint(auth, url_prefix="/auth")
-app.register_blueprint(files, url_prefix="/files")
+app.register_blueprint(authRouter, url_prefix="/auth")
+app.register_blueprint(fileRouter, url_prefix="/files")
+app.register_blueprint(userRouter, url_prefix="/users")
 
 
 def run():
