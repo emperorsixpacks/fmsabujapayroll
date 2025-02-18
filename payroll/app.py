@@ -32,7 +32,7 @@ def user_config():
 
 app.register_blueprint(authRouter, url_prefix="/auth")
 app.register_blueprint(fileRouter, url_prefix="/files")
-app.register_blueprint(userRouter, url_prefix="/users")
+app.register_blueprint(userRouter, url_prefix="/user")
 app.register_blueprint(payslipRouter, url_prefix="/slip")
 
 
