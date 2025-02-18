@@ -3,7 +3,7 @@ from flask_login import current_user, login_required
 
 from payroll.models import Payslip
 
-userRouter = Blueprint("auth", __name__)
+userRouter = Blueprint("users", __name__)
 
 
 @userRouter.route("/dashboard")
