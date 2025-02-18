@@ -1,8 +1,8 @@
 from flask import Blueprint, render_template
 from flask_login import current_user, login_required
 
-from payroll.models import Payslip, User
 from payroll.decorators import admin_required
+from payroll.models import Payslip, User
 
 userRouter = Blueprint("users", __name__)
 

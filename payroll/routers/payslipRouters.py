@@ -1,10 +1,10 @@
 import os
 
-from flask import jsonify, render_template, Blueprint
-from payroll.models import Payslip, db
+from flask import Blueprint, jsonify, render_template
 
 from payroll.config import Config
 from payroll.decorators import admin_required
+from payroll.models import Payslip, db
 
 payslipRouter = Blueprint("files", __name__)
 
