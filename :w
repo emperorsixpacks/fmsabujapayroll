@@ -1,0 +1,54 @@
+import os
+
+from flask import Blueprint, flash, redirect, render_template, request, url_for
+from flask_login import current_user, login_required
+from werkzeug.utils import secure_filename
+
+from payroll.config import Config
+from payroll.decorators import admin_required
+from payroll.models import Payslip, User, db
+
+fileRouter = Blueprint("files", __name__)
+ALLOWED_EXTENSIONS = {"pdf"}
+
+
+def allowed_file(filename):
+    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+@fileRouter.route("/upload", methods=["POST"])
+@admin_required
+def upload_payslip():
+    if "file" not in request.files or "user_id" not in request.form:
+        flash("Missing file or user ID", "danger")
+        return redirect(request.url)
+
+    file = request.files["file"]
+    user_id = request.form.get("user_id")
+
+    # Validate file and user
+    if file.filename == "":
+        flash("No selected file", "danger")
+        return redirect(request.url)
+
+    if not allowed_file(file.filename):
+        flash("Invalid file type. Only PDFs are allowed.", "danger")
+        return redirect(request.url)
+
+    user = User.query.get(user_id)
+    if not user:
+        flash("User not found", "danger")
+        return redirect(request.url)
+
+    # Save file
+    filename = secure_filename(file.filename)
+    file_path = os.path.join(UPLOAD_FOLDER, filename)
+    file.save(file_path)
+
+    # Create Payslip record
+    payslip = Payslip(user_id=user.id, filename=filename, file_path=file_path)
+    db.session.add(payslip)
+    db.session.commit()
+
+    flash("Payslip uploaded successfully!", "success")
+    return redirect(url_for("dashboard"))

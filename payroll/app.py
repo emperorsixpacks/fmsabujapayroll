@@ -7,7 +7,6 @@ from payroll.routers import authRouter, userRouter, fileRouter
 
 app = Flask("__name__")
 app.config.from_object(Config)
-print(app.jinja_env.list_templates())
 db.init_app(app)
 
 login_manager = LoginManager()
