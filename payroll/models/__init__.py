@@ -1,2 +1,3 @@
-from payroll.models.userModels import User
-from payroll.models.base import db 
+from payroll.models.Models import Payslip, User, db
+
+__all__ = ["User", "Payslip", "db"]
