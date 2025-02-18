@@ -1,6 +1,5 @@
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
-from flask_sqlalchemy import Pagination
 
 from payroll.decorators import admin_required
 from payroll.models import Payslip, User, db
@@ -12,7 +11,7 @@ userRouter = Blueprint("users", __name__)
 @admin_required
 def get_all_users():
     users = User.query.all()
-    return render_template("users.html", users=users)
+    return render_template("admin/users.html", users=users)
 
 
 @userRouter.route("/<int:user_id>")
@@ -20,7 +19,7 @@ def get_all_users():
 def get_user_by_id(user_id):
     user = User.query.get_or_404(user_id)
     payslips = Payslip.query.filter_by(user_id=user.id).all()
-    return render_template("user_detail.html", user=user, payslips=payslips)
+    return render_template("admin/user_detail.html", user=user, payslips=payslips)
 
 
 @userRouter.route("/<int:user_id>/delete", methods=["POST"])

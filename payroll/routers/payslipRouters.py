@@ -6,7 +6,7 @@ from payroll.config import Config
 from payroll.decorators import admin_required
 from payroll.models import Payslip, db
 
-payslipRouter = Blueprint("files", __name__)
+payslipRouter = Blueprint("slips", __name__)
 
 
 @payslipRouter.route("/<int:payslip_id>/delete", methods=["POST"])
