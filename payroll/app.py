@@ -1,5 +1,5 @@
 from flask import Flask, render_template
-from flask_login import LoginManager, current_user, login_required
+from flask_login import LoginManager
 
 from payroll.config import Config
 from payroll.models import User, db
@@ -30,7 +30,4 @@ app.register_blueprint(userRouter, url_prefix="/users")
 app.register_blueprint(payslipRouter, url_prefix="/slip")
 
 
-def run():
-    with app.app_context():
-        db.create_all()  # Ensure the database is created
-    app.run(debug=True)
+
