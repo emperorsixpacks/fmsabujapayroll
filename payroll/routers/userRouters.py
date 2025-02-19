@@ -56,13 +56,6 @@ def list_users():
 
     return render_template("admin/users.html", users=users_paginated)
 
-@userRouter.route("/<int:user_id>")
-@admin_required
-def get_user_by_id(user_id):
-    user = User.query.get_or_404(user_id)
-    payslips = Payslip.query.filter_by(user_id=user.id).all()
-    return render_template("admin/user_detail.html", user=user, payslips=payslips)
-
 
 @userRouter.route("/<int:user_id>/delete", methods=["DELETE"])
 @admin_required

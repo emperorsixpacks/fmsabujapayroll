@@ -1,35 +1,42 @@
 <ul class="sidebar-nav" id="sidebar-nav">
-
   <li class="nav-item">
-    <a class="nav-link" href="{{ url_for('slips.my_payslips') }}">
+    <a class="{% if request.endpoint == 'slips.my_payslips' %}nav-link {% else %} nav-link collapsed {% endif %}"
+      href="{{ url_for('slips.my_payslips') }}">
       <i class="bi bi-grid"></i>
       <span>My payslips</span>
     </a>
   </li><!-- End Dashboard Nav -->
 
   <li class="nav-item">
-    <a class="nav-link collapsed" href="{{ url_for('users.profile') }}">
+    <a class="{% if request.endpoint == 'users.profile' %}nav-link {% else %} nav-link collapsed {% endif %}"
+      href="{{ url_for('users.profile') }}">
       <i class="bi bi-person"></i>
-      <span>Profile</span>
+      <span>Profile </span>
     </a>
   </li><!-- End Profile Page Nav -->
 
-  <!-- End Payslips Page Nav -->
-
-  <!-- Show this ONLY if the user is an admin -->
   {% if current_user.is_admin %}
   <li class="nav-item">
-    <a class="nav-link collapsed" href="{{ url_for('users.list_users') }}">
+    <a class="{% if request.endpoint == 'users.list_users' %}nav-link {% else %} nav-link collapsed {% endif %}"
+      href="{{ url_for('users.list_users') }}">
       <i class="bi bi-people"></i>
       <span>Users</span>
     </a>
   </li><!-- End Users Page Nav -->
+
   <li class="nav-item">
-    <a class="nav-link collapsed" href="{{ url_for('slips.list_payslips') }}">
+    <a class="{% if request.endpoint == 'slips.list_payslips' %}nav-link {% else %} nav-link collapsed {% endif %}"
+      href="{{ url_for('slips.list_payslips') }}">
       <i class="bi bi-person"></i>
       <span>Payslips</span>
     </a>
   </li>
   {% endif %}
 
+  <li class="nav-item">
+    <a class="nav-link collapsed"  href="{{ url_for('auth.logout') }}">
+      <i class="bi bi-box-arrow-right"></i>
+      <span>Sign Out</span>
+    </a>
+  </li><!-- End Logout Nav -->
 </ul>
