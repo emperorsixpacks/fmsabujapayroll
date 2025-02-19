@@ -1,0 +1,15 @@
+{% for payslip in payslips %}
+<tr>
+  <td>{{ payslip.filename }}</td>
+  <td>{{ payslip.upload_date.strftime('%Y-%m-%d') }}</td>
+  <td>
+    <a href="{{ url_for('files.download_payslip', payslip_id=payslip.id) }}" class="btn btn-success btn-sm">
+      Download
+    </a>
+  </td>
+</tr>
+{% else %}
+<tr>
+  <td colspan="3" class="text-center">No payslips found.</td>
+</tr>
+{% endfor %}

@@ -1,15 +1,21 @@
 import os
+from datetime import datetime
 
-from flask import Blueprint, jsonify, render_template, request
+from flask import (Blueprint, flash, jsonify, redirect, render_template,
+                   request, url_for)
+from flask_login import current_user, login_required
+from sqlalchemy import extract, or_
+from werkzeug.utils import secure_filename
 
+from payroll import config
 from payroll.config import Config
 from payroll.decorators import admin_required
-from payroll.models import Payslip, db
+from payroll.models import Payslip, User, db
 
 payslipRouter = Blueprint("slips", __name__)
 
 
-@payslipRouter.route("/<int:payslip_id>/delete", methods=["POST"])
+@payslipRouter.route("/<int:payslip_id>/delete", methods=["DELETE"])
 @admin_required
 def delete_payslip(payslip_id):
     payslip = Payslip.query.get(payslip_id)
@@ -26,18 +32,171 @@ def delete_payslip(payslip_id):
     db.session.delete(payslip)
     db.session.commit()
 
-    return jsonify({"message": "Payslip deleted successfully"}), 200
+    return "", 200
 
 
 @payslipRouter.route("/", methods=["GET"])
-@admin_required
+@login_required  # Assuming admin_required is similar to login_required
 def list_payslips():
-    page = request.args.get(
-        "page", 1, type=int
-    )  # Get current page number, default to 1
-    per_page = 10  # Define how many payslips to display per page
-    payslips = Payslip.query.paginate(
-        page, per_page, False
-    )  # Paginate the payslips query
+    page = request.args.get("page", 1, type=int)
+    per_page = 10
+    search_query = request.args.get("search", "").strip()
+    year = request.args.get("year", type=int)
+    month = request.args.get("month", type=int)
 
-    return render_template("admin/payslips.html", payslips=payslips)
+    # Base query with join to access user details
+    base_query = Payslip.query.join(User)
+
+    # Apply filters if provided
+    if search_query:
+        search_term = f"%{search_query}%"
+        base_query = base_query.filter(
+            or_(
+                User.first_name.ilike(search_term),
+                User.last_name.ilike(search_term),
+                Payslip.filename.ilike(search_term),
+            )
+        )
+
+    if year:
+        base_query = base_query.filter(extract("year", Payslip.upload_date) == year)
+
+    if month:
+        base_query = base_query.filter(extract("month", Payslip.upload_date) == month)
+
+    # Apply ordering and paginate
+    payslips_paginated = base_query.order_by(Payslip.upload_date.desc()).paginate(
+        page=page, per_page=per_page, error_out=False
+    )
+
+    return render_template(
+        "admin/payslips.html", payslips=payslips_paginated, datetime=datetime
+    )
+
+
+@payslipRouter.route("/my-payslips", methods=["GET"])
+@login_required
+def my_payslips():
+    page = request.args.get("page", 1, type=int)
+    per_page = 10  # Get month and year from query parameters
+    month = request.args.get("month", type=int)
+    year = request.args.get("year", type=int)
+
+    # Start with all payslips belonging to the current logged-in user
+    query = Payslip.query.filter_by(user_id=current_user.id)
+
+    # Apply filtering if month and year are provided
+    if month and year:
+        query = query.filter(
+            db.extract("year", Payslip.upload_date) == year,
+            db.extract("month", Payslip.upload_date) == month,
+        )
+
+    # Order by upload date (most recent first)
+    payslips = query.order_by(Payslip.upload_date.desc()).paginate(
+        page=page, per_page=per_page, error_out=False
+    )
+
+    return render_template("user_payslips.html", payslips=payslips, datetime=datetime)
+
+
+@payslipRouter.route("/my-payslip-search", methods=["GET"])
+@login_required
+def my_payslip_search():
+    """Limit search to only the current user's payslips."""
+    year = request.args.get("year", type=int)
+    month = request.args.get("month", type=int)
+
+    # Base query limited to current user
+    base_query = Payslip.query.filter(Payslip.user_id == current_user.id)
+
+    if year:
+        base_query = base_query.filter(extract("year", Payslip.upload_date) == year)
+
+    if month:
+        base_query = base_query.filter(extract("month", Payslip.upload_date) == month)
+
+    payslips = base_query.order_by(Payslip.upload_date.desc()).all()
+
+    return render_template("partials/user_payslips_list.html", payslips=payslips)
+
+
+@payslipRouter.route("/search", methods=["GET"])
+def search_payslips():
+    search_query = request.args.get("search", "").strip()
+    year = request.args.get("year", type=int)
+    month = request.args.get("month", type=int)
+
+    # Base query
+    base_query = Payslip.query.join(User)
+
+    # Apply filters
+    if search_query:
+        search_term = f"%{search_query}%"
+        base_query = base_query.filter(
+            or_(
+                User.first_name.ilike(search_term),
+                User.last_name.ilike(search_term),
+                Payslip.filename.ilike(search_term),
+            )
+        )
+
+    if year:
+        base_query = base_query.filter(extract("year", Payslip.upload_date) == year)
+
+    if month:
+        base_query = base_query.filter(extract("month", Payslip.upload_date) == month)
+
+    payslips = base_query.order_by(Payslip.upload_date.desc()).all()
+
+    return render_template("partials/payslip_list.html", payslips=payslips)
+
+
+ALLOWED_EXTENSIONS = {"pdf"}
+MAX_FILE_SIZE = 1 * 1024 * 1024  # 1MB
+
+
+def allowed_file(filename):
+    """Check if file has a .pdf extension."""
+    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+def file_size_ok(file):
+    """Check if file size is within limit."""
+    file.seek(0, os.SEEK_END)  # Move cursor to end of file
+    size = file.tell()  # Get file size
+    file.seek(0)  # Reset cursor for saving
+    return size <= MAX_FILE_SIZE
+
+
+@payslipRouter.route("/create", methods=["GET", "POST"])
+@admin_required
+def create_payslip():
+    if request.method == "POST":
+        user_id = request.form.get("user_id")
+        payslip_file = request.files.get("payslip")
+
+        if not user_id or not payslip_file:
+            flash("Please select a user and upload a file.", "danger")
+            return redirect(url_for("slips.create_payslip"))
+
+        if not allowed_file(payslip_file.filename):
+            flash("Only PDF files are allowed.", "danger")
+            return redirect(url_for("slips.create_payslip"))
+
+        if not file_size_ok(payslip_file):
+            flash("File size must be less than 1MB.", "danger")
+            return redirect(url_for("slips.create_payslip"))
+
+        filename = secure_filename(payslip_file.filename)
+        file_path = os.path.join(Config.UPLOAD_FOLDER, filename)
+        payslip_file.save(file_path)
+
+        new_payslip = Payslip(filename=filename, user_id=user_id)
+        db.session.add(new_payslip)
+        db.session.commit()
+
+        flash("Payslip created successfully!", "success")
+        return redirect(url_for("slips.list_payslips"))
+
+    return render_template("admin/create_payslip.html")

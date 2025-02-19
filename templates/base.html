@@ -7,9 +7,16 @@
 </head>
 
 <body>
-  {% include "partials/header.html" %}
-  {% include "partials/sidebar.html" %}
-
+  <header id="header" class="header fixed-top d-flex align-items-center">
+    {% include "partials/header.html" %}
+  </header>
+  <aside id="sidebar" class="sidebar">
+    {% include "partials/sidebar.html" %}
+  </aside>
+  <main id="main" class="main">
+    {% block main %} {% endblock %}
+  </main>
+  {% include "partials/footer.html" %}
 </body>
 
 </html>

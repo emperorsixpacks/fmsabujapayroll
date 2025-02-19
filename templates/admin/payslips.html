@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block main %}
+<div class="container">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="mb-0">Payslips</h1>
+    <a href="/slip/create" class="btn btn-primary">
+      <i class="fas fa-plus"></i> Create Payslip
+    </a>
+  </div>
+
+  <!-- Search & Filters Section -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-4">
+      <input 
+        type="text" 
+        class="form-control" 
+        placeholder="Search by name or filename..." 
+        name="search"
+        hx-get="/slip/search"
+        hx-trigger="keyup changed delay:500ms"
+        hx-target="#payslip-table-body"
+        hx-include="[name='year'], [name='month']"
+      />
+    </div>
+
+    <div class="col-md-3">
+      <select class="form-control" name="year"
+        hx-get="/slip/search"
+        hx-trigger="change"
+        hx-target="#payslip-table-body"
+        hx-include="[name='search'], [name='month']"
+      >
+        <option value="">Select Year</option>
+        {% for y in range(2000, datetime.utcnow().year + 1) %}
+          <option value="{{ y }}">{{ y }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="col-md-3">
+      <select class="form-control" name="month"
+        hx-get="/slip/search"
+        hx-trigger="change"
+        hx-target="#payslip-table-body"
+        hx-include="[name='search'], [name='year']"
+      >
+        <option value="">Select Month</option>
+        {% for m in range(1, 13) %}
+                  <option value="{{ m }}">{{ datetime(2000, m, 1).strftime('%B') }}</option>
+           {% endfor %}
+      </select>
+    </div>
+  </div>
+
+  <!-- Table Section -->
+  <div class="card p-3">
+    <table class="table table-striped">
+      <thead class="thead-dark">
+        <tr>
+          <th>User Name</th>
+          <th>User email</th>
+          <th>Payslip</th>
+          <th>Upload Date</th>
+        </tr>
+      </thead>
+      <tbody id="payslip-table-body">
+        {% include "partials/payslip_list.html" %}
+      </tbody>
+    </table>
+<div class="pagination">
+  {% if payslips.has_prev %}
+  <button hx-get="{{ url_for('slips.list_payslips', page=payslips.prev_num) }}" hx-target="#users-table"
+    class="btn btn-outline-primary">Previous</button>
+  {% endif %}
+
+  <span> Page {{ payslips.page }} of {{ payslips.pages }} </span>
+
+  {% if payslips.has_next %}
+  <button hx-get="{{ url_for('slips.list_payslips', page=payslips.next_num) }}" hx-target="#users-table"
+    class="btn btn-outline-primary">Next</button>
+  {% endif %}
+</div>
+  </div>
+</div>
+{% endblock %}

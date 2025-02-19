@@ -1,0 +1,25 @@
+{% for payslip in payslips %}
+<tr id="payslip-{{ payslip.id }}">
+  <td>{{ payslip.user.first_name }} {{ payslip.user.last_name }}</td>
+  <td>{{ payslip.user.email }}</td>
+  <td>
+    <a href="{{ url_for('files.download_payslip', payslip_id=payslip.id) }}">
+      {{ payslip.filename }}
+    </a>
+  </td>
+  <td>{{ payslip.upload_date.strftime('%Y-%m-%d') }}</td>
+  <td>
+    <button hx-delete="{{ url_for('slips.delete_payslip', payslip_id=payslip.id) }}"
+            hx-target="#payslip-{{ payslip.id }}"
+            hx-swap="outerHTML"
+            class="btn btn-danger btn-sm">
+      Delete
+    </button>
+  </td>
+</tr>
+{% else %}
+<tr>
+  <td colspan="4" class="text-center">No payslips found.</td>
+</tr>
+{% endfor %}
+
