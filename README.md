@@ -31,20 +31,20 @@ To get started with the FMS Abuja Payroll System, follow these steps:
    ```
 
 2. **Set Up a Virtual Environment**:
-   Install `uv` (a Python virtual environment tool) if you don't already have it:
+   Install `uv` (a modern Python package installer) if you don't already have it:
    ```bash
    pip install uv
    ```
    Create and activate the virtual environment:
    ```bash
-   uv venv venv
-   source venv/bin/activate  # On Windows, use `venv\Scripts\activate`
+   uv venv .venv
+   source .venv/bin/activate  # On Windows, use `.venv\Scripts\activate`
    ```
 
 3. **Install Dependencies**:
-   Install the required Python packages:
+   Install the dependencies listed in the `pyproject.toml` file:
    ```bash
-   pip install -r requirements.txt
+   uv pip install .
    ```
 
 4. **Run the Application**:
@@ -69,25 +69,3 @@ To get started with the FMS Abuja Payroll System, follow these steps:
 
 - **Employee Login**:
   - Employees can log in to view and download their payslips.
-
-## Contributing
-
-Contributions are welcome! If you'd like to contribute to this project, please follow these steps:
-
-1. Fork the repository.
-2. Create a new branch for your feature or bugfix.
-3. Commit your changes and push to your fork.
-4. Submit a pull request with a detailed description of your changes.
-
-## License
-
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
-
-## Acknowledgments
-
-- Flask: https://flask.palletsprojects.com/
-- Bootstrap: https://getbootstrap.com/
-- HTMX: https://htmx.org/
-```
-
-This `README.md` provides a clear overview of the project, installation instructions, and usage details. Let me know if you need further adjustments!
