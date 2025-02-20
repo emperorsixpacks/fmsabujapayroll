@@ -1,4 +1,4 @@
-from flask import Flask, render_template
+from flask import Flask, redirect
 from flask_login import LoginManager
 
 from payroll.config import Config
@@ -21,8 +21,7 @@ def load_user(user_id):
 
 @app.route("/")
 def index():
-    return render_template("index.html")
-
+    return redirect(url_for("slips.my_payslips"))
 
 app.register_blueprint(authRouter, url_prefix="/auth")
 app.register_blueprint(fileRouter, url_prefix="/files")

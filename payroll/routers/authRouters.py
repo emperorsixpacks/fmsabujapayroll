@@ -1,6 +1,5 @@
 from flask import Blueprint, flash, redirect, render_template, request, url_for
-from flask_login import login_required, login_user, logout_user
-from payroll.decorators import admin_required
+from flask_login import login_required, login_user, logout_user, current_user
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from payroll.models import User, db
@@ -41,6 +40,10 @@ def register():
 
 @authRouter.route("/login", methods=["GET", "POST"])
 def login():
+    if current_user.is_authenticated:
+        # Redirect the user to a different page if they're already logged in
+        return redirect(url_for("slips.my_payslips"))
+    
     if request.method == "POST":
         email = request.form["email"]
         password = request.form["password"]
@@ -56,6 +59,7 @@ def login():
             return redirect(url_for("slips.my_payslips"))
 
     return render_template("login.html")
+
 
 @authRouter.route("/logout")
 @login_required

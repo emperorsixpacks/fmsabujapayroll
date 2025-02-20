@@ -12,5 +12,6 @@ dependencies = [
     "python-dotenv>=1.0.1",
     "ruff>=0.9.6",
     "sqlalchemy>=2.0.38",
+    "waitress>=3.0.2",
 ]
 
