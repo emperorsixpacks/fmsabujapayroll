@@ -15,12 +15,12 @@ def create_admin():
         if User.query.filter_by(email=email).first():
             print("Admin user already exists!")
             sys.exit(1)
-
+        
         admin = User(
             email=email,
             first_name=first_name,
             last_name=last_name,
-            password=generate_password_hash(password),
+            password_hash=generate_password_hash(password),
             role="admin",
         )
 

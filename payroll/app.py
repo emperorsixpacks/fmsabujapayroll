@@ -1,5 +1,6 @@
 from flask import Flask, redirect, url_for
 from flask_login import LoginManager
+from flask_migrate import Migrate
 
 from payroll.config import Config
 from payroll.models import User, db
@@ -28,5 +29,7 @@ app.register_blueprint(fileRouter, url_prefix="/files")
 app.register_blueprint(userRouter, url_prefix="/users")
 app.register_blueprint(payslipRouter, url_prefix="/slip")
 
-
-
+if __name__ == "__main__":
+    with app.app_context():
+        db.create_all() 
+    app.run(debug=True)
