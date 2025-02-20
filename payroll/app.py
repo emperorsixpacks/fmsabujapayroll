@@ -1,4 +1,4 @@
-from flask import Flask, redirect
+from flask import Flask, redirect, url_for
 from flask_login import LoginManager
 
 from payroll.config import Config
