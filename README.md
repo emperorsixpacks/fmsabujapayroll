@@ -50,13 +50,13 @@ To get started with the FMS Abuja Payroll System, follow these steps:
 4. **Run the Application**:
    Use the provided script to run the app:
    ```bash
-   ./scripts/run
+   python -m run
    ```
 
 5. **Create an Admin User**:
    Run the `create_admin.py` script to create an admin account:
    ```bash
-   python ./scripts/create_admin.py
+   python -m scripts.create_admin
    ```
 
 6. **Access the Application**:
