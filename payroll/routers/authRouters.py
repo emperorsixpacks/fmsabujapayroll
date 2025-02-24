@@ -16,7 +16,7 @@ def register():
         password = request.form["password"]
         last_name = request.form["lastName"]
         first_name = request.form["firstName"]
-        ipps_number = request.form["ippsNumber"]  # Get IPPS number from form
+        ippis_number = request.form["ippisNumber"]  # Get IPPIS number from form
 
         # Check if the email already exists
         existing_user = User.query.filter_by(email=email).first()
@@ -24,10 +24,10 @@ def register():
             flash("Email is already registered. Please log in.", "danger")
             return redirect(url_for("auth.register"))
 
-        # Check if the IPPS number already exists
-        existing_ipps = User.query.filter_by(ipps_number=ipps_number).first()
-        if existing_ipps:
-            flash("IPPS Number is already in use. Please check and try again.", "danger")
+        # Check if the IPPIS number already exists
+        existing_ippis = User.query.filter_by(ippis_number=ippis_number).first()
+        if existing_ippis:
+            flash("IPPIS Number is already in use. Please check and try again.", "danger")
             return redirect(url_for("auth.register"))
 
         hashed_password = generate_password_hash(password)
@@ -37,7 +37,7 @@ def register():
             role="employee",
             first_name=first_name,
             last_name=last_name,
-            ipps_number=ipps_number,  # Save IPPS number
+            ippis_number=ippis_number,  # Save IPPIS number
         )
         db.session.add(user)
         db.session.commit()

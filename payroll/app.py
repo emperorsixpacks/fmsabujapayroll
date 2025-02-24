@@ -29,7 +29,3 @@ app.register_blueprint(fileRouter, url_prefix="/files")
 app.register_blueprint(userRouter, url_prefix="/users")
 app.register_blueprint(payslipRouter, url_prefix="/slip")
 
-if __name__ == "__main__":
-    with app.app_context():
-        db.create_all() 
-    app.run(debug=True)

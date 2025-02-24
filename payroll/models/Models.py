@@ -11,7 +11,7 @@ class User(db.Model, UserMixin):
     first_name = db.Column(db.String(25), nullable=False)
     password_hash = db.Column(db.String(128), nullable=False)
     role = db.Column(db.String(10), nullable=False, default="employee")  # "admin" or "employee"
-    ipps_number = db.Column(db.String(20), unique=True, nullable=False)  # Added IPPS Number
+    ippis_number = db.Column(db.String(20), unique=True, nullable=False)  # Added IPPIS Number
 
     # Explicit Relationship
     payslips = db.relationship(

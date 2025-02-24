@@ -186,18 +186,18 @@ def create_payslip():
             flash("File size must be less than 1MB.", "danger")
             return redirect(url_for("slips.create_payslip"))
 
-        # Extract IPPS number from filename (assuming format like "123456.pdf")
-        ipps_number = os.path.splitext(payslip_file.filename)[0]
+        # Extract IPPIS number from filename (assuming format like "123456.pdf")
+        ippis_number = os.path.splitext(payslip_file.filename)[0]
 
-        # Find user by IPPS number
-        user = User.query.filter_by(ipps_number=ipps_number).first()
+        # Find user by IPPIS number
+        user = User.query.filter_by(ippis_number=ippis_number).first()
         if not user:
-            flash(f"User with IPPS number {ipps_number} not found.", "danger")
+            flash(f"User with IPPIS number {ippis_number} not found.", "danger")
             return redirect(url_for("slips.create_payslip"))
 
         # Rename file with timestamp
         timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
-        new_filename = f"{ipps_number}_{timestamp}.pdf"
+        new_filename = f"{ippis_number}_{timestamp}.pdf"
         file_path = os.path.join(Config.UPLOAD_FOLDER, new_filename)
         payslip_file.save(file_path)
 
@@ -231,18 +231,18 @@ def bulk_upload_payslips():
                 flash(f"File too large: {payslip_file.filename}", "danger")
                 continue  # Skip large files
 
-            # Extract IPPS number from filename (assuming format like "123456.pdf")
-            ipps_number = os.path.splitext(payslip_file.filename)[0]
+            # Extract IPPIS number from filename (assuming format like "123456.pdf")
+            ippis_number = os.path.splitext(payslip_file.filename)[0]
 
-            # Find user by IPPS number
-            user = User.query.filter_by(ipps_number=ipps_number).first()
+            # Find user by IPPIS number
+            user = User.query.filter_by(ippis_number=ippis_number).first()
             if not user:
-                flash(f"User with IPPS number {ipps_number} not found.", "danger")
+                flash(f"User with IPPIS number {ippis_number} not found.", "danger")
                 continue  # Skip unrecognized files
 
             # Rename file with timestamp
             timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
-            new_filename = f"{ipps_number}_{timestamp}.pdf"
+            new_filename = f"{ippis_number}_{timestamp}.pdf"
             file_path = os.path.join(Config.UPLOAD_FOLDER, new_filename)
             payslip_file.save(file_path)
 
