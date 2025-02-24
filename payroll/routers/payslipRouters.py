@@ -200,3 +200,47 @@ def create_payslip():
         return redirect(url_for("slips.list_payslips"))
 
     return render_template("admin/create_payslip.html")
+
+@payslipRouter.route("/bulk-upload", methods=["GET", "POST"])
+@admin_required
+def bulk_upload_payslips():
+    if request.method == "POST":
+        payslip_files = request.files.getlist("payslips")  # Get multiple files
+        
+        if not payslip_files or all(f.filename == "" for f in payslip_files):
+            flash("Please upload at least one payslip file.", "danger")
+            return redirect(url_for("slips.bulk_upload_payslips"))
+
+        for payslip_file in payslip_files:
+            if not allowed_file(payslip_file.filename):
+                flash(f"Invalid file type: {payslip_file.filename}", "danger")
+                continue  # Skip invalid files
+
+            if not file_size_ok(payslip_file):
+                flash(f"File too large: {payslip_file.filename}", "danger")
+                continue  # Skip large files
+
+            # Extract IPPS number from filename (assuming format like "123456.pdf")
+            ipps_number = os.path.splitext(payslip_file.filename)[0]
+
+            # Find user by IPPS number
+            user = User.query.filter_by(ipps_number=ipps_number).first()
+            if not user:
+                flash(f"User with IPPS number {ipps_number} not found.", "danger")
+                continue  # Skip unrecognized files
+
+            # Rename file with timestamp
+            timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
+            new_filename = f"{ipps_number}_{timestamp}.pdf"
+            file_path = os.path.join(Config.UPLOAD_FOLDER, new_filename)
+            payslip_file.save(file_path)
+
+            # Save to database
+            new_payslip = Payslip(filename=new_filename, user_id=user.id)
+            db.session.add(new_payslip)
+
+        db.session.commit()
+        flash("Payslips uploaded successfully!", "success")
+        return redirect(url_for("slips.list_payslips"))
+
+    return render_template("admin/bulk_upload_payslips.html")
