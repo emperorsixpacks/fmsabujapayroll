@@ -3,23 +3,31 @@ from flask_login import login_required, login_user, logout_user, current_user
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from payroll.models import User, db
+from payroll.decorators import admin_required
 
 authRouter = Blueprint("auth", __name__)
 
 
 @authRouter.route("/register", methods=["GET", "POST"])
-#@admin_required
+@admin_required
 def register():
     if request.method == "POST":
         email = request.form["email"]
         password = request.form["password"]
         last_name = request.form["lastName"]
         first_name = request.form["firstName"]
+        ipps_number = request.form["ippsNumber"]  # Get IPPS number from form
 
         # Check if the email already exists
         existing_user = User.query.filter_by(email=email).first()
         if existing_user:
             flash("Email is already registered. Please log in.", "danger")
+            return redirect(url_for("auth.register"))
+
+        # Check if the IPPS number already exists
+        existing_ipps = User.query.filter_by(ipps_number=ipps_number).first()
+        if existing_ipps:
+            flash("IPPS Number is already in use. Please check and try again.", "danger")
             return redirect(url_for("auth.register"))
 
         hashed_password = generate_password_hash(password)
@@ -29,6 +37,7 @@ def register():
             role="employee",
             first_name=first_name,
             last_name=last_name,
+            ipps_number=ipps_number,  # Save IPPS number
         )
         db.session.add(user)
         db.session.commit()
