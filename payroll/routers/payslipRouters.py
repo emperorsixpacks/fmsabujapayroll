@@ -1,8 +1,7 @@
 import os
 from datetime import datetime
 
-from flask import (Blueprint, flash, jsonify, redirect, render_template,
-                   request, url_for)
+from flask import Blueprint, flash, jsonify, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 from sqlalchemy import extract, or_
 from werkzeug.utils import secure_filename
@@ -173,11 +172,10 @@ def file_size_ok(file):
 @admin_required
 def create_payslip():
     if request.method == "POST":
-        user_id = request.form.get("user_id")
         payslip_file = request.files.get("payslip")
 
-        if not user_id or not payslip_file:
-            flash("Please select a user and upload a file.", "danger")
+        if not payslip_file or payslip_file.filename == "":
+            flash("Please upload a payslip file.", "danger")
             return redirect(url_for("slips.create_payslip"))
 
         if not allowed_file(payslip_file.filename):
@@ -188,25 +186,38 @@ def create_payslip():
             flash("File size must be less than 1MB.", "danger")
             return redirect(url_for("slips.create_payslip"))
 
-        filename = secure_filename(payslip_file.filename)
-        file_path = os.path.join(Config.UPLOAD_FOLDER, filename)
+        # Extract IPPS number from filename (assuming format like "123456.pdf")
+        ipps_number = os.path.splitext(payslip_file.filename)[0]
+
+        # Find user by IPPS number
+        user = User.query.filter_by(ipps_number=ipps_number).first()
+        if not user:
+            flash(f"User with IPPS number {ipps_number} not found.", "danger")
+            return redirect(url_for("slips.create_payslip"))
+
+        # Rename file with timestamp
+        timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
+        new_filename = f"{ipps_number}_{timestamp}.pdf"
+        file_path = os.path.join(Config.UPLOAD_FOLDER, new_filename)
         payslip_file.save(file_path)
 
-        new_payslip = Payslip(filename=filename, user_id=user_id)
+        # Save to database
+        new_payslip = Payslip(filename=new_filename, user_id=user.id)
         db.session.add(new_payslip)
         db.session.commit()
 
-        flash("Payslip created successfully!", "success")
+        flash("Payslip uploaded successfully!", "success")
         return redirect(url_for("slips.list_payslips"))
 
     return render_template("admin/create_payslip.html")
+
 
 @payslipRouter.route("/bulk-upload", methods=["GET", "POST"])
 @admin_required
 def bulk_upload_payslips():
     if request.method == "POST":
         payslip_files = request.files.getlist("payslips")  # Get multiple files
-        
+
         if not payslip_files or all(f.filename == "" for f in payslip_files):
             flash("Please upload at least one payslip file.", "danger")
             return redirect(url_for("slips.bulk_upload_payslips"))
