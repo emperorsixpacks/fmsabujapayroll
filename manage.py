@@ -4,6 +4,7 @@ import argparse
 from waitress import serve
 from payroll.app import app
 from payroll.models import db  # Ensure this imports your database instance
+from scripts.create_admin import create_admin
 
 def migrate():
     """Handles database migration (creates tables)."""
@@ -35,6 +36,7 @@ if __name__ == "__main__":
         migrate()
     elif args.command == "run":
         run()
-    elif args.command == "run_debug":
+    elif args.command == "run-debug":
         run_debug()
-
+    elif args.command == "create-admin":
+        create_admin()

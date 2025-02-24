@@ -3,14 +3,22 @@ from payroll.models import db, User
 from payroll.app import app
 from werkzeug.security import generate_password_hash
 
+def get_input(prompt):
+    """Helper function to ensure input is not empty."""
+    while True:
+        value = input(prompt).strip()
+        if value:
+            return value
+        print("This field is required. Please enter a value.")
 
 def create_admin():
     """Creates an admin user if one doesn't exist."""
     with app.app_context():
-        email = input("Enter admin email: ")
-        first_name = input("Enter admin first name: ")
-        last_name = input("Enter admin last name: ")
-        password = input("Enter admin password: ")
+        email = get_input("Enter admin email: ")
+        first_name = get_input("Enter admin first name: ")
+        last_name = get_input("Enter admin last name: ")
+        ippis_number = get_input("Enter admin IPPIS number: ")
+        password = get_input("Enter admin password: ")
 
         if User.query.filter_by(email=email).first():
             print("Admin user already exists!")
@@ -20,6 +28,7 @@ def create_admin():
             email=email,
             first_name=first_name,
             last_name=last_name,
+            ippis_number=ippis_number,
             password_hash=generate_password_hash(password),
             role="admin",
         )
@@ -29,5 +38,3 @@ def create_admin():
         print("Admin user created successfully!")
 
 
-if __name__ == "__main__":
-    create_admin()
