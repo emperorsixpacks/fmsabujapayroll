@@ -1,7 +1,8 @@
 import os
 from datetime import datetime
 
-from flask import Blueprint, flash, jsonify, redirect, render_template, request, url_for
+from flask import (Blueprint, flash, jsonify, redirect, render_template,
+                   request, url_for)
 from flask_login import current_user, login_required
 from sqlalchemy import extract, or_
 from werkzeug.utils import secure_filename
@@ -12,6 +13,10 @@ from payroll.decorators import admin_required
 from payroll.models import Payslip, User, db
 
 payslipRouter = Blueprint("slips", __name__)
+
+
+ALLOWED_EXTENSIONS = {"pdf"}
+MAX_FILE_SIZE = 2 * 1024 * 1024  # 1MB
 
 
 @payslipRouter.route("/<int:payslip_id>/delete", methods=["DELETE"])
@@ -35,7 +40,7 @@ def delete_payslip(payslip_id):
 
 
 @payslipRouter.route("/", methods=["GET"])
-@login_required  # Assuming admin_required is similar to login_required
+@admin_required  # Assuming admin_required is similar to login_required
 def list_payslips():
     page = request.args.get("page", 1, type=int)
     per_page = 10
@@ -121,6 +126,7 @@ def my_payslip_search():
 
 
 @payslipRouter.route("/search", methods=["GET"])
+@admin_required
 def search_payslips():
     search_query = request.args.get("search", "").strip()
     year = request.args.get("year", type=int)
@@ -149,10 +155,6 @@ def search_payslips():
     payslips = base_query.order_by(Payslip.upload_date.desc()).all()
 
     return render_template("partials/payslip_list.html", payslips=payslips)
-
-
-ALLOWED_EXTENSIONS = {"pdf"}
-MAX_FILE_SIZE = 1 * 1024 * 1024  # 1MB
 
 
 def allowed_file(filename):

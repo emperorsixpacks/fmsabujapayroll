@@ -9,7 +9,8 @@
   </div>
 
   <div class="card p-4">
-    <form id="bulk-upload-form" method="POST" action="{{ url_for('slips.bulk_upload_payslips') }}" enctype="multipart/form-data">
+    <form id="bulk-upload-form" method="POST" action="{{ url_for('slips.bulk_upload_payslips') }}"
+      enctype="multipart/form-data">
 
       <div class="mb-3">
         <label for="payslips" class="form-label">Upload Payslips (PDF only, multiple allowed)</label>
@@ -31,18 +32,6 @@
     </form>
   </div>
 
-  {% with messages = get_flashed_messages(with_categories=True) %}
-    {% if messages %}
-      <div class="mt-4">
-        {% for category, message in messages %}
-          <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-            {{ message }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-          </div>
-        {% endfor %}
-      </div>
-    {% endif %}
-  {% endwith %}
 </div>
 
 <script>
@@ -91,4 +80,3 @@
   });
 </script>
 {% endblock %}
-

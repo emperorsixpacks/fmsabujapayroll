@@ -28,7 +28,7 @@ def run_debug():
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Manage the payroll system.")
-    parser.add_argument("command", choices=["migrate", "run", "run_debug"], help="Command to execute")
+    parser.add_argument("command", choices=["migrate", "run", "run-debug", "create-admin"], help="Command to execute")
 
     args = parser.parse_args()
 

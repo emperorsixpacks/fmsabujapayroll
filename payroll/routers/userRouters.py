@@ -25,7 +25,7 @@ def profile():
     return render_template("profile.html", user=user)
 
 @userRouter.route("/", methods=["GET"])
-@login_required  # Assuming admin_required is similar to login_required
+@admin_required  # Assuming admin_required is similar to login_required
 def list_users():
     page = request.args.get("page", 1, type=int)
     per_page = 10
@@ -74,7 +74,7 @@ def delete_user(user_id):
     return "", 200
 
 @userRouter.route("/payslips", methods=["GET"])
-@login_required
+@admin_required
 def get_user_payslips():
     page = request.args.get("page", 1, type=int)
     payslips = Payslip.query.filter_by(user_id=current_user.id).paginate(
@@ -85,6 +85,7 @@ def get_user_payslips():
 
 
 @userRouter.route("/search")
+@admin_required
 def search_users():
     search = request.args.get("search", "").strip()
 

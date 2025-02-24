@@ -15,7 +15,7 @@
     </a>
   </li><!-- End Profile Page Nav -->
 
-  {% if current_user.is_admin %}
+  {% if current_user.is_admin() %}
   <li class="nav-item">
     <a class="{% if request.endpoint == 'users.list_users' %}nav-link {% else %} nav-link collapsed {% endif %}"
       href="{{ url_for('users.list_users') }}">
