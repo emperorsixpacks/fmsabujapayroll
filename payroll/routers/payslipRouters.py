@@ -1,22 +1,37 @@
+import logging
 import os
+import threading
 from datetime import datetime
 
-from flask import (Blueprint, flash, jsonify, redirect, render_template,
-                   request, url_for)
+from flask import (
+    Blueprint,
+    current_app,
+    flash,
+    jsonify,
+    redirect,
+    render_template,
+    request,
+    url_for,
+)
 from flask_login import current_user, login_required
 from sqlalchemy import extract, or_
-from werkzeug.utils import secure_filename
 
-from payroll import config
 from payroll.config import Config
 from payroll.decorators import admin_required
 from payroll.models import Payslip, User, db
+from payroll.utils import allowed_file, file_size_ok, process_payslip, sanitize_filename
 
 payslipRouter = Blueprint("slips", __name__)
 
-
-ALLOWED_EXTENSIONS = {"pdf"}
-MAX_FILE_SIZE = 2 * 1024 * 1024  # 1MB
+# Configure logging to log both to a file and the console
+logging.basicConfig(
+    level=logging.INFO,  # Set logging level
+    format="%(asctime)s - %(levelname)s - %(message)s",
+    handlers=[
+        logging.FileHandler("payslip_processing.log"),  # Log to a file
+        logging.StreamHandler(),  # Log to the console
+    ],
+)
 
 
 @payslipRouter.route("/<int:payslip_id>/delete", methods=["DELETE"])
@@ -157,19 +172,6 @@ def search_payslips():
     return render_template("partials/payslip_list.html", payslips=payslips)
 
 
-def allowed_file(filename):
-    """Check if file has a .pdf extension."""
-    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
-
-
-def file_size_ok(file):
-    """Check if file size is within limit."""
-    file.seek(0, os.SEEK_END)  # Move cursor to end of file
-    size = file.tell()  # Get file size
-    file.seek(0)  # Reset cursor for saving
-    return size <= MAX_FILE_SIZE
-
-
 @payslipRouter.route("/create", methods=["GET", "POST"])
 @admin_required
 def create_payslip():
@@ -224,36 +226,40 @@ def bulk_upload_payslips():
             flash("Please upload at least one payslip file.", "danger")
             return redirect(url_for("slips.bulk_upload_payslips"))
 
+        # Save files before starting threads
+        saved_files = []
         for payslip_file in payslip_files:
             if not allowed_file(payslip_file.filename):
                 flash(f"Invalid file type: {payslip_file.filename}", "danger")
+                logging.warning(f"Invalid file type uploaded: {payslip_file.filename}")
                 continue  # Skip invalid files
 
             if not file_size_ok(payslip_file):
                 flash(f"File too large: {payslip_file.filename}", "danger")
+                logging.warning(f"File too large: {payslip_file.filename}")
                 continue  # Skip large files
 
-            # Extract IPPIS number from filename (assuming format like "123456.pdf")
-            ippis_number = os.path.splitext(payslip_file.filename)[0]
-
-            # Find user by IPPIS number
-            user = User.query.filter_by(ippis_number=ippis_number).first()
-            if not user:
-                flash(f"User with IPPIS number {ippis_number} not found.", "danger")
-                continue  # Skip unrecognized files
-
-            # Rename file with timestamp
+            # Generate a clean filename with timestamp
+            clean_name = sanitize_filename(payslip_file.filename)
             timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
-            new_filename = f"{ippis_number}_{timestamp}.pdf"
-            file_path = os.path.join(Config.UPLOAD_FOLDER, new_filename)
-            payslip_file.save(file_path)
+            temp_filename = f"{clean_name}_{timestamp}.pdf"
+            temp_path = os.path.join(Config.UPLOAD_FOLDER, temp_filename)
 
-            # Save to database
-            new_payslip = Payslip(filename=new_filename, user_id=user.id)
-            db.session.add(new_payslip)
+            # Save file to disk
+            payslip_file.save(temp_path)
+            saved_files.append(temp_path)
+            logging.info(f"File saved: {temp_path}")
 
-        db.session.commit()
-        flash("Payslips uploaded successfully!", "success")
+        # Start processing in separate threads
+        for temp_path in saved_files:
+            thread = threading.Thread(
+                target=process_payslip,
+                args=(temp_path, current_app._get_current_object()),
+            )
+            thread.start()
+            logging.info(f"Started thread for {temp_path}")
+
+        flash("Payslips are being processed in the background!", "success")
         return redirect(url_for("slips.list_payslips"))
 
     return render_template("admin/bulk_upload_payslips.html")
